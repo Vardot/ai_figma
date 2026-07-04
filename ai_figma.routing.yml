@@ -1,0 +1,7 @@
+ai_figma.settings:
+  path: '/admin/config/ai/figma'
+  defaults:
+    _form: 'Drupal\ai_figma\Form\SettingsForm'
+    _title: 'AI Figma'
+  requirements:
+    _permission: 'administer ai figma'

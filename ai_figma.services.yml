@@ -1,0 +1,20 @@
+services:
+  ai_figma.client:
+    class: Drupal\ai_figma\FigmaContextClient
+    arguments:
+      - '@http_client'
+      - '@config.factory'
+      - '@logger.factory'
+      - '@?key.repository'
+
+  ai_figma.installer:
+    class: Drupal\ai_figma\AiFigmaInstaller
+    arguments:
+      - '@config.factory'
+      - '@entity_type.manager'
+      - '@logger.factory'
+      - '@module_handler'
+      - '@plugin.manager.key.key_provider'
+
+  # Alias the class to the service id so the OOP #[Hook] class can autowire it.
+  Drupal\ai_figma\AiFigmaInstaller: '@ai_figma.installer'

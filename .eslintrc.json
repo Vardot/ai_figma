@@ -1,0 +1,22 @@
+{
+  "root": true,
+  "extends": ["eslint:recommended", "prettier"],
+  "env": {
+    "browser": true,
+    "node": true,
+    "es2020": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2020,
+    "sourceType": "script"
+  },
+  "globals": {
+    "Drupal": true,
+    "drupalSettings": true,
+    "once": true
+  },
+  "rules": {
+    "no-unused-vars": ["warn"],
+    "no-empty": ["warn", { "allowEmptyCatch": true }]
+  }
+}

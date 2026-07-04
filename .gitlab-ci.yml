@@ -1,0 +1,38 @@
+################################################################################
+# GitLab CI for the AI Figma module on git.drupalcode.org.
+#
+# Uses the Drupal GitLabCI template (the DrupalCI replacement), which provides
+# composer, PHPCS, PHPStan and PHPUnit jobs across the supported and adjacent
+# core versions with no per-project maintenance. See:
+#   https://project.pages.drupalcode.org/gitlab_templates/
+################################################################################
+
+include:
+  - project: $_GITLAB_TEMPLATES_REPO
+    ref: $_GITLAB_TEMPLATES_REF
+    file:
+      - '/includes/include.drupalci.main.yml'
+      - '/includes/include.drupalci.variables.yml'
+      - '/includes/include.drupalci.workflows.yml'
+
+variables:
+  # Test against adjacent core versions too, not just the current one.
+  OPT_IN_TEST_PREVIOUS_MINOR: 1
+  OPT_IN_TEST_NEXT_MINOR: 1
+  OPT_IN_TEST_NEXT_MAJOR: 1
+  OPT_IN_TEST_MAX_PHP: 1
+  # No CSS in this module; the webship-js (Playwright + Cucumber) functional
+  # suite under tests/ is run separately, not in this pipeline.
+  SKIP_STYLELINT: 1
+  SKIP_ESLINT: 1
+
+# Blocking quality gates: Drupal + DrupalPractice coding standards and PHPStan.
+phpcs:
+  allow_failure: false
+
+phpstan:
+  allow_failure: false
+
+# Spelling is advisory - a dictionary miss should not block the pipeline.
+cspell:
+  allow_failure: true

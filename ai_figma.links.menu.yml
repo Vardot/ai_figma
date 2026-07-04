@@ -1,0 +1,6 @@
+ai_figma.settings:
+  title: 'AI Figma'
+  description: 'Set the Figma token and default file, and test the connection. Everything else runs through the Drupal Canvas AI assistant.'
+  route_name: ai_figma.settings
+  parent: ai.admin_settings
+  weight: 4

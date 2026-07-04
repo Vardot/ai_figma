@@ -1,0 +1,21 @@
+{
+  "css": {
+    "ai figma settings form": "form#ai-figma-settings, form[data-drupal-selector='ai-figma-settings']",
+    "ai figma settings figma token key": "#edit-figma-token-key, select[name='figma_token_key']",
+    "ai figma settings default file key": "#edit-default-file-key, input[name='default_file_key']",
+    "ai figma settings api base": "#edit-figma-api-base, input[name='figma_api_base']",
+    "ai figma settings connection details": "details#edit-connection",
+    "ai figma settings test details": "details#edit-test",
+    "ai figma test connection button": "#edit-test-connection, input[value='Test Figma connection']",
+    "ai figma save configuration button": "#edit-submit, input[value='Save configuration']",
+    "ai figma settings form errors": "form#ai-figma-settings [aria-invalid='true'], form[data-drupal-selector='ai-figma-settings'] [aria-invalid='true']",
+
+    "ai figma admin services link": ".admin-item__link[href$='/admin/config/ai/figma'], a[href$='/admin/config/ai/figma']",
+    "ai figma admin menu link": "a[href$='/admin/config/ai/figma']",
+
+    "ai agents list": "table.views-table, table#ai-agents, .views-view-table"
+  },
+  "xpath": {
+    "ai figma admin services link": "//a[contains(@href,'/admin/config/ai/figma')]"
+  }
+}

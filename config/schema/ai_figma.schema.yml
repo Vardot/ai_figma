@@ -1,0 +1,110 @@
+ai_figma.settings:
+  type: config_object
+  label: 'AI Figma settings'
+  mapping:
+    component_prefix:
+      type: string
+      label: 'Component machine-name prefix (e.g. sdc.<theme>)'
+    figma_token_source:
+      type: string
+      label: 'Token source (Key module)'
+    figma_token_key:
+      type: string
+      label: 'Key module key id holding the Figma token'
+    figma_api_base:
+      type: string
+      label: 'Figma API base URL'
+    default_file_key:
+      type: string
+      label: 'Default Figma file key'
+    default_layout:
+      type: string
+      label: 'Default builder layout (auto, cards, feature, cta, media)'
+    build_rules:
+      type: text
+      label: 'Figma build rules prompt (generic, theme-agnostic)'
+    accessibility_rules:
+      type: text
+      label: 'Figma accessibility rules prompt'
+    mapping_governance:
+      type: text
+      label: 'Optional targeted component-mapping governance prompt'
+    context_scope:
+      type: sequence
+      label: 'Scope for seeded AI Context items'
+      sequence:
+        type: sequence
+        sequence:
+          type: string
+    content_roles:
+      type: sequence
+      label: 'Semantic content roles read from the Figma node text'
+      sequence:
+        type: mapping
+        label: 'How a content role is extracted'
+        mapping:
+          source:
+            type: string
+            label: 'Where the text comes from (heading, paragraph, label, root)'
+          index:
+            type: integer
+            label: 'Which item from that source (0-based)'
+          max_length:
+            type: integer
+            label: 'Trim the text to this many characters (0 = no trim)'
+    layouts:
+      type: sequence
+      label: 'Layout definitions (component, slot, props and content per role)'
+      sequence:
+        type: sequence
+        label: 'Roles for a layout'
+        sequence:
+          type: mapping
+          label: 'Role definition'
+          mapping:
+            component:
+              type: string
+              label: 'Component machine name (without prefix)'
+            slot:
+              type: string
+              label: 'Section slot, e.g. col_1 or col_%i'
+            props:
+              type: ignore
+              label: 'Static component props'
+            content:
+              type: sequence
+              label: 'Prop to content-role binding (prop name => content role)'
+              sequence:
+                type: string
+                label: 'Content role that fills this prop'
+    component_choices:
+      type: mapping
+      label: 'Chosen component per structural family'
+      mapping:
+        section:
+          type: string
+          label: 'Section component'
+        group:
+          type: string
+          label: 'Group component'
+        card:
+          type: string
+          label: 'Card component'
+        hero:
+          type: string
+          label: 'Hero component'
+        cta:
+          type: string
+          label: 'CTA component'
+        heading:
+          type: string
+          label: 'Heading component'
+        text:
+          type: string
+          label: 'Text component'
+    builder_order:
+      type: sequence
+      label: 'Structural nesting order (section, group, card)'
+      sequence:
+        type: string
+        label: 'Structural level'

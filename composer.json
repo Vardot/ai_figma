@@ -1,0 +1,35 @@
+{
+    "name": "drupal/ai_figma",
+    "description": "Turn a Figma design into a Drupal Canvas page built from your theme components - via an admin form or the Canvas AI assistant - with an AI Agent tool that reads Figma design context. Config-driven and theme-agnostic.",
+    "type": "drupal-module",
+    "license": "GPL-2.0-or-later",
+    "keywords": [
+        "Drupal",
+        "AI",
+        "AI Agents",
+        "Figma",
+        "Drupal Canvas",
+        "design tokens",
+        "design to code"
+    ],
+    "homepage": "https://www.drupal.org/project/ai_figma",
+    "authors": [
+        {
+            "name": "Vardot",
+            "homepage": "https://www.vardot.com",
+            "role": "Maintainer"
+        }
+    ],
+    "support": {
+        "issues": "https://www.drupal.org/project/issues/ai_figma",
+        "source": "https://git.drupalcode.org/project/ai_figma"
+    },
+    "require": {
+        "php": ">=8.3",
+        "drupal/core": "^11",
+        "drupal/ai": "^1",
+        "drupal/ai_agents": "^1",
+        "drupal/key": "^1",
+        "drupal/easy_encryption": "^1"
+    }
+}

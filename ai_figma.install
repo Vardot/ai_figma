@@ -1,0 +1,60 @@
+<?php
+
+/**
+ * @file
+ * Install and requirements hooks for AI Figma.
+ *
+ * The wiring logic (Key creation, Canvas AI orchestrator tools, AI Context
+ * seeding) lives in the Drupal\ai_figma\AiFigmaInstaller service so it is
+ * shared, injectable and testable; these hooks only call it.
+ */
+
+declare(strict_types=1);
+
+use Drupal\Core\Extension\Requirement\RequirementSeverity;
+use Drupal\Core\Url;
+
+/**
+ * Implements hook_install().
+ */
+function ai_figma_install(): void {
+  // ai_figma ships only the basic Figma connection (client + settings + Key).
+  // The Canvas AI orchestrator tool-wiring and AI Context seeding are owned by
+  // varbase_ai_figma, which carries the build/assistant tools.
+  \Drupal::service('ai_figma.installer')->installFigmaKey();
+}
+
+/**
+ * Implements hook_requirements().
+ */
+function ai_figma_requirements(string $phase): array {
+  $requirements = [];
+  if ($phase !== 'runtime') {
+    return $requirements;
+  }
+
+  /** @var \Drupal\ai_figma\FigmaContextClient $client */
+  $client = \Drupal::service('ai_figma.client');
+  $token = $client->getToken();
+  $settings_url = Url::fromRoute('ai_figma.settings')->toString();
+
+  if ($token === '') {
+    $requirements['ai_figma_token'] = [
+      'title' => t('AI Figma'),
+      'value' => t('No Figma token configured'),
+      'severity' => RequirementSeverity::Warning,
+      'description' => t('Pick (or add) a Key holding your Figma personal access token at <a href=":url">the settings page</a> so the Figma design context tool can run.', [
+        ':url' => $settings_url,
+      ]),
+    ];
+  }
+  else {
+    $requirements['ai_figma_token'] = [
+      'title' => t('AI Figma'),
+      'value' => t('Figma token configured'),
+      'severity' => RequirementSeverity::OK,
+    ];
+  }
+
+  return $requirements;
+}

@@ -1,6 +1,6 @@
 # AI Figma
 
-[![Tests](https://github.com/Vardot/ai_figma/actions/workflows/test.yml/badge.svg)](https://github.com/Vardot/ai_figma/actions/workflows/test.yml)
+[![pipeline status](https://git.drupalcode.org/project/ai_figma/badges/1.0.x/pipeline.svg)](https://git.drupalcode.org/project/ai_figma/-/pipelines)
 
 Turn a Figma design into a ready-made Drupal Canvas page. Paste a Figma link and
 the module builds a matching page from your site's own components, styled with the

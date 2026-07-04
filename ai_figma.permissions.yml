@@ -1,0 +1,8 @@
+administer ai figma:
+  title: 'Administer AI Figma'
+  description: 'Configure the module settings and the Figma token.'
+  restrict access: true
+
+use ai figma design context:
+  title: 'Use Figma design context'
+  description: 'Read Figma design context and list node ids (the AI tools and the node list page).'

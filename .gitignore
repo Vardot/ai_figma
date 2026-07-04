@@ -4,3 +4,4 @@ tests/reports/
 tests/screenshots/
 .DS_Store
 *.log
+.playwright-mcp/

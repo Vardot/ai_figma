@@ -1,0 +1,10 @@
+**/*.min.js
+node_modules
+vendor
+tests/reports
+tests/screenshots
+tests/videos
+cucumber.js
+playwright.config.ts
+*.yml
+*.yaml

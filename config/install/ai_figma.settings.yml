@@ -1,0 +1,110 @@
+figma_token_source: key
+figma_token_key: figma
+# Empty derives 'sdc.<site default theme>' so the builder uses whatever theme
+# the site runs. Pin it (e.g. 'sdc.vartheme_bs5') in a customization layer.
+component_prefix: ''
+figma_api_base: 'https://api.figma.com'
+# Default Figma file key (the long id in a figma.com/design/<fileKey>/… URL).
+# Baked to the VB - Approved Stylesheet so a fresh demo install reads it out of
+# the box; override on Admin → AI → Varbase AI Figma, or pass a link per call.
+default_file_key: ''
+default_layout: auto
+# Prompts / rules the Figma design-context tool sends to the Canvas AI agent.
+# These live in CONFIG (editable here or, preferably, at Admin → AI → Context as
+# the "Figma Build Rules" / "Figma Accessibility Rules" items, which override these).
+# Generic + theme-agnostic: no Bootstrap / Varbase / distribution assumptions.
+build_rules: 'Build this design with Drupal Canvas. Editable at Admin → AI → Context ("Figma Build Rules"). COMPONENT MAPPING GOVERNANCE (do this FIRST): (a) read available_components and find the closest existing component for each design section; (b) EXACT MATCH → reuse it as-is and say why it matches (layout, content zones, structure); (c) PARTIAL MATCH → name the closest 1-3 components, describe the differences, and PREFER extending the closest one (add props / variants) over cloning a near-duplicate; (d) NO MATCH → do NOT silently create a new component: tell the user there is no match and propose a new component or a theme/component update, and get approval before scaffolding; (e) report design-vs-theme differences (layer grouping, spacing, font weights, sizes, alignment) and map polish values onto the active theme spacing/type scale, not hard-coded pixels. Then build: (1) REUSE before creating per the governance above; (2) build page parts as SECTIONS - one focused code component per section (hero, cards, stats, CTA), never one monolithic page component; (3) create Canvas pages and place the components in them; (4) header and footer are GLOBAL - reuse the site''s existing system blocks (Site branding, Main navigation, Footer menu, Powered by) in the theme regions; never repeat them inside page components; (5) FORMS = a real Drupal form, never hand-coded HTML - use the core Contact form or an existing Webform; (6) LISTINGS of content (blog, news, events) = reuse the matching content type + its Views listing block, not static cards; bind content components to entities and view modes; (7) map Figma colours onto the active theme''s design tokens / CSS custom properties, not hard-coded hex; (8) name components after what they are ("hero", "stats"), never prefix with "Figma"; (9) fill components with the REAL text from content_texts verbatim (larger sizes = headings, smaller = body/labels), only using placeholder text when content_texts is empty.'
+accessibility_rules: 'Every component and text you add MUST be accessible (WCAG 2.1 AA): one logical heading hierarchy (a single h1, then h2/h3 in order - never skip levels or use a heading purely for size); meaningful alt text on every image/icon (empty alt only for decorative ones); real descriptive text on every link and button (no "click here", no empty icon-only controls without an aria-label); text/background contrast >=4.5:1 (>=3:1 for large text) - if a mapped Figma colour fails, pick the theme variant that passes; a visible label on every form field; never convey meaning by colour alone. The result should pass an automated accessibility audit (axe-core) with no serious or critical violations.'
+# Optional extra targeted rule (empty in the generic engine). A customization
+# layer fills it (e.g. component-mapping governance). Seeded as the
+# "Figma Component Mapping Governance" AI Context item when non-empty.
+mapping_governance: ''
+# Scope applied to the seeded AI Context items: ['<scope_id>' => [values]].
+# Generic = global. A setup can target a use case (e.g. working_in_canvas).
+context_scope:
+  global:
+    - global
+# Semantic content the builder reads out of the Figma node text. Each role
+# names where its text comes from (heading = larger text, paragraph = longer
+# copy, label = a short button-like string, root = the node name) and how much
+# to keep. The layout `content` bindings below reference these role names, so
+# none of them are hard-coded in PHP.
+content_roles:
+  title:
+    source: heading
+    index: 0
+    max_length: 70
+  body:
+    source: paragraph
+    index: 0
+    max_length: 280
+  cta:
+    source: label
+    index: 0
+    max_length: 24
+# Each section role declares its component, the slot it sits in, its static
+# props, and a `content` map binding component props to the content roles above
+# (prop name => role). When a role has no `content` map the builder derives the
+# binding from the component's own props (read from the theme component folder /
+# cached Canvas component config). Nothing about component/slot/props/content is
+# hard-coded in PHP - repoint any of it here.
+layouts:
+  cards:
+    section:
+      component: section
+      props: { container_type: container, gutter: 'gx-4 gy-4', padding_block_start: pt-5, padding_block_end: pb-5, aos_once: true, background_color: none }
+    card:
+      component: card
+      slot: 'col_%i'
+      props: { orientation: image-top, background: bg-light, has_padding: true, media_ratio: auto, button_variant: btn-primary, url: / }
+  feature:
+    heading_section:
+      component: section
+      props: { columns: '100', container_type: container, padding_block_start: pt-5, padding_block_end: pb-2, aos_once: true }
+    heading:
+      component: heading
+      slot: col_1
+      props: { level: 2, align: text-center }
+      content: { heading_text: title, text: title }
+    section:
+      component: section
+      props: { container_type: container, gutter: 'gx-3 gy-3', padding_block_start: pt-2, padding_block_end: pb-5, aos_once: true }
+    card:
+      component: card-icon
+      slot: 'col_%i'
+      props: { text: '', icon: record-circle, icon_size: fs-2, background_color: bg-light, text_align: text-start, has_padding: true, button_label: '' }
+      content: { text: title, description: body }
+  cta:
+    section:
+      component: section
+      props: { columns: '100', container_type: container, background_color: bg-dark, bg_edge2edge: true, padding_block_start: pt-5, padding_block_end: pb-5, aos_once: true }
+    cta:
+      component: cta
+      slot: col_1
+      props: { level: 2, heading_size: display-5, background_color: 'bg-dark text-white', content_color: text-white, text_align: text-center, button_variant: btn-primary, button_url: /, bg_edge2edge: false }
+      content: { heading_text: title, text: body, button_text: cta }
+  media:
+    section:
+      component: section
+      props: { columns: '50-50', container_type: container, background_color: bg-dark, bg_edge2edge: true, gutter: 'gx-4 gy-4', padding_block_start: pt-5, padding_block_end: pb-5, aos_once: true }
+    text:
+      component: cta
+      slot: col_1
+      props: { level: 2, heading_size: display-6, background_color: bg-none, content_color: text-white, text_align: text-start, button_variant: btn-primary, button_url: /, bg_edge2edge: false }
+      content: { heading_text: title, text: body, button_text: cta }
+    media:
+      component: card-icon
+      slot: col_2
+      props: { text: '', description: '', icon: people, icon_size: fs-1, background_color: 'bg-primary text-white', text_align: text-center, has_padding: true, button_label: '' }
+component_choices:
+  section: section
+  group: group
+  card: card
+  hero: hero-side-by-side
+  cta: cta
+  heading: heading
+  text: plain-text
+builder_order:
+  - section
+  - group
+  - card
