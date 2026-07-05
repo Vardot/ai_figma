@@ -10,8 +10,8 @@
     "ai figma save configuration button": "#edit-submit, input[value='Save configuration']",
     "ai figma settings form errors": "form#ai-figma-settings [aria-invalid='true'], form[data-drupal-selector='ai-figma-settings'] [aria-invalid='true']",
 
-    "ai figma admin services link": ".admin-item__link[href$='/admin/config/ai/figma'], a[href$='/admin/config/ai/figma']",
-    "ai figma admin menu link": "a[href$='/admin/config/ai/figma']",
+    "ai figma admin services link": ".admin-item__link[href$='/admin/config/ai/figma']",
+    "ai figma admin menu link": ".admin-item__link[href$='/admin/config/ai/figma']",
 
     "ai agents list": "table.views-table, table#ai-agents, .views-view-table"
   },

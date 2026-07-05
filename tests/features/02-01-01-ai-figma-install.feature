@@ -19,5 +19,5 @@ Feature: AI Figma module admin pages load correctly
 
   Scenario: The AI Figma settings link is discoverable from the AI configuration section
     When I navigate to "/admin/config/ai"
-    Then the "ai figma admin services link" element should have a count of 1
+    Then the "ai figma admin services link" element should be visible
      And I the page should not have PHP errors

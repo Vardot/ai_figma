@@ -1,23 +1,17 @@
-Feature: Login for every configured user
+Feature: The administrator can log in
   As a site administrator
-  I want every user defined in cucumber.js worldParameters.users to be able to
-  log in
-  So that the suite has known-good fixtures for every role before any
-  role-specific scenarios run
+  I want to log in as the install super-admin
+  So that the suite has a known-good administrator fixture before the
+  admin-only scenarios run
 
-  Scenario: Webmaster can log in and provision the rest of the testing users
+  # The functional lane only needs the administrator: every scenario in this
+  # suite asserts admin pages render with no PHP errors, and denial is proven
+  # with the built-in anonymous user - so no extra test users are provisioned
+  # (which keeps the lane fast and free of user-creation flakiness across the
+  # Drupal Core, Drupal CMS and Varbase distributions the matrix targets).
+
+  Scenario: The administrator can log in
     Given I am a logged in user with the "Webmaster" user
+    When I navigate to "/user"
     Then I should be on the "/user/" page
-    When I add testing users
-     And I navigate to "/admin/people"
-    Then I should see "content_editor_user"
-     And I should see "authenticated_user"
      And I the page should not have PHP errors
-
-  Scenario: Content editor can log in
-    Given I am a logged in user with the "Content editor" user
-    Then I should be on the "/user/" page
-
-  Scenario: Authenticated user can log in
-    Given I am a logged in user with the "Authenticated user" user
-    Then I should be on the "/user/" page

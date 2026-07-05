@@ -71,7 +71,6 @@ module.exports = {
         files: [
           'cms-drupal-core-claro.json',
           'cms-drupal-cms-gin.json',
-          'cms-varbase-vartheme.json',
           'ai_figma.json',
         ],
         offset: 60,

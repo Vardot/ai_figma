@@ -32,3 +32,7 @@ Feature: AI Figma module - the single configuration page
     Then I should see "The configuration options have been saved."
      And the "ai figma settings form errors" element should have a count of 0
      And I the page should not have PHP errors
+
+  Scenario: The settings page meets basic accessibility
+    Then every form field should have an accessible label
+     And the page should have no serious accessibility violations
