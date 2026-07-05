@@ -1,0 +1,36 @@
+site_name: AI Figma
+site_description: >-
+  Read a Figma design's context from server-side PHP and hand it to Drupal's
+  AI Agent tools.
+site_url: https://project.pages.drupalcode.org/ai_figma/
+repo_url: https://git.drupalcode.org/project/ai_figma
+repo_name: project/ai_figma
+docs_dir: docs
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.top
+    - content.code.copy
+    - content.code.annotate
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Configuration: configuration.md
+  - AI Agent tool: ai-agent-tool.md
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - pymdownx.superfences

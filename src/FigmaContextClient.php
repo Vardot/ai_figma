@@ -7,9 +7,10 @@ namespace Drupal\ai_figma;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Exception\RequestException;
 
 /**
- * Fetches and summarises Figma design context for AI Agent tools.
+ * Fetches and summarizes Figma design context for AI Agent tools.
  *
  * Talks to the Figma REST API (https://api.figma.com). This is the same data
  * surfaced by the Figma MCP server's get_design_context, but reachable from
@@ -105,7 +106,7 @@ class FigmaContextClient {
    *
    * The base is admin-configurable, and every request sends the secret token in
    * an X-Figma-Token header - so a hostile or mistyped base could exfiltrate
-   * the token or trigger SSRF. Defence in depth: only an http(s) URL with a
+   * the token or trigger SSRF. Defense in depth: only an http(s) URL with a
    * host is accepted; anything else (file://, gopher://, no host, ...) is
    * rejected and the request falls back to the public Figma API. Rejections
    * are logged.
@@ -134,6 +135,118 @@ class FigmaContextClient {
   }
 
   /**
+   * Resolves the Figma token, or throws a helpful exception when none is set.
+   *
+   * @return string
+   *   The resolved access token (never empty).
+   *
+   * @throws \RuntimeException
+   *   When no token is configured.
+   */
+  protected function requireToken(): string {
+    $token = $this->getToken();
+    if ($token === '') {
+      throw new \RuntimeException('No Figma access token configured. Add your Figma token to the Figma Key at /admin/config/system/keys, then select it at /admin/config/ai/figma.');
+    }
+    return $token;
+  }
+
+  /**
+   * Performs an authenticated GET against the Figma API and decodes the JSON.
+   *
+   * Centralizes the token header, timeout, error handling and JSON decoding
+   * shared by every Figma endpoint call.
+   *
+   * @param string $url
+   *   The fully built request URL.
+   * @param string $context
+   *   A short human label used in the error message on failure.
+   * @param int $timeout
+   *   Request timeout in seconds.
+   *
+   * @return array
+   *   The decoded JSON response.
+   *
+   * @throws \RuntimeException
+   *   When no token is configured, the request fails, or the body is not JSON.
+   */
+  protected function get(string $url, string $context = 'Figma API request failed', int $timeout = 30): array {
+    $token = $this->requireToken();
+    try {
+      $response = $this->httpClient->request('GET', $url, [
+        'headers' => ['X-Figma-Token' => $token, 'Accept' => 'application/json'],
+        'timeout' => $timeout,
+      ]);
+    }
+    catch (\Throwable $e) {
+      throw $this->requestFailed($context, $e);
+    }
+    $data = json_decode((string) $response->getBody(), TRUE);
+    if (!is_array($data)) {
+      throw new \RuntimeException('Figma API returned an unparseable response.');
+    }
+    return $data;
+  }
+
+  /**
+   * Collects the document root(s) from a /files or /nodes API response.
+   *
+   * A /v1/files/:key response carries a single top-level `document`; a
+   * /v1/files/:key/nodes response carries one `document` per requested id under
+   * `nodes`. Returns whichever are present.
+   *
+   * @param array $data
+   *   A decoded Figma API response.
+   *
+   * @return array
+   *   A list of document root nodes.
+   */
+  protected static function collectRoots(array $data): array {
+    $roots = [];
+    if (isset($data['document']) && is_array($data['document'])) {
+      $roots[] = $data['document'];
+    }
+    if (isset($data['nodes']) && is_array($data['nodes'])) {
+      foreach ($data['nodes'] as $entry) {
+        if (isset($entry['document']) && is_array($entry['document'])) {
+          $roots[] = $entry['document'];
+        }
+      }
+    }
+    return $roots;
+  }
+
+  /**
+   * Logs a failed Figma request and returns a concise exception for it.
+   *
+   * Guzzle's own exception message embeds the whole request line and response
+   * body, which is noisy in the UI and the logs. When the failure carries an
+   * HTTP response, prefer the status code plus Figma's own "err"/"message"
+   * field (e.g. "403 Invalid token"); otherwise fall back to the raw message.
+   *
+   * @param string $context
+   *   A short human label for the operation, e.g. "Figma API request failed".
+   * @param \Throwable $e
+   *   The caught exception.
+   *
+   * @return \RuntimeException
+   *   The exception to throw to the caller.
+   */
+  protected function requestFailed(string $context, \Throwable $e): \RuntimeException {
+    $detail = $e->getMessage();
+    if ($e instanceof RequestException && $e->hasResponse()) {
+      $response = $e->getResponse();
+      $status = $response->getStatusCode();
+      $body = json_decode((string) $response->getBody(), TRUE);
+      $figma = is_array($body) ? trim((string) ($body['err'] ?? $body['message'] ?? '')) : '';
+      $detail = $figma !== '' ? $status . ' ' . $figma : 'HTTP ' . $status;
+    }
+    $this->loggerFactory->get('ai_figma')
+      ->error('@context: @detail', ['@context' => $context, '@detail' => $detail]);
+    return new \RuntimeException($context . ': ' . $detail);
+  }
+
+  /**
    * Fetches one or more nodes from a Figma file.
    *
    * @param string $file_key
@@ -148,10 +261,6 @@ class FigmaContextClient {
    *   When no token is configured or the request fails.
    */
   public function fetchNodes(string $file_key, string $node_id = ''): array {
-    $token = $this->getToken();
-    if ($token === '') {
-      throw new \RuntimeException('No Figma access token configured. Add your Figma token to the Figma Key at /admin/config/system/keys, then select it at /admin/config/ai/figma.');
-    }
     $base = $this->apiBase();
 
     // Figma node ids in URLs use a colon; URLs sometimes carry a dash form.
@@ -166,34 +275,11 @@ class FigmaContextClient {
       $normalized_node = $this->resolveNodeIdByName($file_key, trim($node_id));
     }
 
-    if ($normalized_node !== '') {
-      $url = $base . '/v1/files/' . rawurlencode($file_key) . '/nodes?ids=' . rawurlencode($normalized_node);
-    }
-    else {
-      $url = $base . '/v1/files/' . rawurlencode($file_key) . '?depth=2';
-    }
+    $url = $normalized_node !== ''
+      ? $base . '/v1/files/' . rawurlencode($file_key) . '/nodes?ids=' . rawurlencode($normalized_node)
+      : $base . '/v1/files/' . rawurlencode($file_key) . '?depth=2';
 
-    try {
-      $response = $this->httpClient->request('GET', $url, [
-        'headers' => [
-          'X-Figma-Token' => $token,
-          'Accept' => 'application/json',
-        ],
-        'timeout' => 30,
-      ]);
-    }
-    catch (\Throwable $e) {
-      $this->loggerFactory->get('ai_figma')
-        ->error('Figma API request failed: @msg', ['@msg' => $e->getMessage()]);
-      throw new \RuntimeException('Figma API request failed: ' . $e->getMessage());
-    }
-
-    $body = (string) $response->getBody();
-    $data = json_decode($body, TRUE);
-    if (!is_array($data)) {
-      throw new \RuntimeException('Figma API returned an unparseable response.');
-    }
-    return $data;
+    return $this->get($url, 'Figma API request failed', 30);
   }
 
   /**
@@ -252,17 +338,7 @@ class FigmaContextClient {
     $root_name = '';
 
     // Collect document roots from either /nodes or /files response shapes.
-    $roots = [];
-    if (isset($data['nodes']) && is_array($data['nodes'])) {
-      foreach ($data['nodes'] as $entry) {
-        if (isset($entry['document'])) {
-          $roots[] = $entry['document'];
-        }
-      }
-    }
-    elseif (isset($data['document'])) {
-      $roots[] = $data['document'];
-    }
+    $roots = self::collectRoots($data);
 
     $walk = function (array $node, int $depth) use (&$walk, &$colors, &$typography, &$outline, &$texts): void {
       $name = (string) ($node['name'] ?? '');
@@ -330,29 +406,8 @@ class FigmaContextClient {
    *   Decoded JSON from /v1/files/:key.
    */
   public function fetchFile(string $file_key): array {
-    $token = $this->getToken();
-    if ($token === '') {
-      throw new \RuntimeException('No Figma access token configured.');
-    }
     $url = $this->apiBase() . '/v1/files/' . rawurlencode($file_key);
-
-    try {
-      $response = $this->httpClient->request('GET', $url, [
-        'headers' => ['X-Figma-Token' => $token, 'Accept' => 'application/json'],
-        'timeout' => 60,
-      ]);
-    }
-    catch (\Throwable $e) {
-      $this->loggerFactory->get('ai_figma')
-        ->error('Figma file request failed: @msg', ['@msg' => $e->getMessage()]);
-      throw new \RuntimeException('Figma file request failed: ' . $e->getMessage());
-    }
-
-    $data = json_decode((string) $response->getBody(), TRUE);
-    if (!is_array($data)) {
-      throw new \RuntimeException('Figma API returned an unparseable response.');
-    }
-    return $data;
+    return $this->get($url, 'Figma file request failed', 60);
   }
 
   /**
@@ -371,29 +426,13 @@ class FigmaContextClient {
    *   Map of node id => temporary S3 image URL ('' when render failed).
    */
   public function fetchImages(string $file_key, array $node_ids, string $format = 'png', float $scale = 2.0): array {
-    $token = $this->getToken();
-    if ($token === '') {
-      throw new \RuntimeException('No Figma access token configured.');
-    }
     $ids = implode(',', array_map(static fn(string $id): string => str_replace('-', ':', trim($id)), $node_ids));
     $url = $this->apiBase() . '/v1/images/' . rawurlencode($file_key)
       . '?ids=' . rawurlencode($ids) . '&format=' . rawurlencode($format) . '&scale=' . $scale;
 
-    try {
-      $response = $this->httpClient->request('GET', $url, [
-        'headers' => ['X-Figma-Token' => $token, 'Accept' => 'application/json'],
-        'timeout' => 60,
-      ]);
-    }
-    catch (\Throwable $e) {
-      $this->loggerFactory->get('ai_figma')
-        ->error('Figma images request failed: @msg', ['@msg' => $e->getMessage()]);
-      throw new \RuntimeException('Figma images request failed: ' . $e->getMessage());
-    }
-
-    $data = json_decode((string) $response->getBody(), TRUE);
-    if (!is_array($data) || !empty($data['err'])) {
-      throw new \RuntimeException('Figma images API error: ' . ($data['err'] ?? 'unparseable response'));
+    $data = $this->get($url, 'Figma images request failed', 60);
+    if (!empty($data['err'])) {
+      throw new \RuntimeException('Figma images API error: ' . $data['err']);
     }
     return array_map(static fn($v): string => (string) $v, $data['images'] ?? []);
   }
@@ -412,24 +451,9 @@ class FigmaContextClient {
    *   Map of imageRef => temporary download URL (S3). Empty when none.
    */
   public function fetchImageFills(string $file_key): array {
-    $token = $this->getToken();
-    if ($token === '') {
-      throw new \RuntimeException('No Figma access token configured.');
-    }
     $url = $this->apiBase() . '/v1/files/' . rawurlencode($file_key) . '/images';
-    try {
-      $response = $this->httpClient->request('GET', $url, [
-        'headers' => ['X-Figma-Token' => $token, 'Accept' => 'application/json'],
-        'timeout' => 60,
-      ]);
-    }
-    catch (\Throwable $e) {
-      $this->loggerFactory->get('ai_figma')
-        ->error('Figma image-fills request failed: @msg', ['@msg' => $e->getMessage()]);
-      throw new \RuntimeException('Figma image-fills request failed: ' . $e->getMessage());
-    }
-    $data = json_decode((string) $response->getBody(), TRUE);
-    if (!is_array($data) || !empty($data['error'])) {
+    $data = $this->get($url, 'Figma image-fills request failed', 60);
+    if (!empty($data['error'])) {
       throw new \RuntimeException('Figma image-fills API error.');
     }
     return array_map(static fn($v): string => (string) $v, $data['meta']['images'] ?? []);
@@ -546,17 +570,7 @@ class FigmaContextClient {
    *   - variable: a suggested machine variable name (deduplicated).
    */
   public function indexNodes(array $data): array {
-    $roots = [];
-    if (isset($data['document'])) {
-      $roots[] = $data['document'];
-    }
-    if (isset($data['nodes']) && is_array($data['nodes'])) {
-      foreach ($data['nodes'] as $entry) {
-        if (isset($entry['document'])) {
-          $roots[] = $entry['document'];
-        }
-      }
-    }
+    $roots = self::collectRoots($data);
 
     $rows = [];
     $used = [];
@@ -613,7 +627,7 @@ class FigmaContextClient {
     if ($slug === '') {
       $slug = 'node';
     }
-    $base = '--vb-' . $slug;
+    $base = '--figma-' . $slug;
     $candidate = $base;
     $i = 2;
     while (isset($used[$candidate])) {

@@ -10,7 +10,7 @@ use Drupal\ai_figma\FigmaContextClient;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Configures the Varbase AI Figma.
+ * Configures the AI Figma module: the Figma token, default file and API base.
  */
 class SettingsForm extends ConfigFormBase {
 
@@ -67,10 +67,16 @@ class SettingsForm extends ConfigFormBase {
       '#open' => TRUE,
       '#description' => $this->t('How the module authenticates to the Figma REST API and which file it reads by default.'),
     ];
+    // Only offer authentication keys. The token chosen here is sent verbatim to
+    // the Figma API in the X-Figma-Token header, so listing every key would let
+    // an admin pick (and transmit) an unrelated secret - e.g. the site's
+    // easy_encryption private key - to a third party. Restricting the options
+    // also means Drupal's own select validation rejects any tampered POST that
+    // names a non-authentication key.
     $key_options = ['' => $this->t('- Select -')];
     $has_keys = FALSE;
     if ($this->keyRepository) {
-      foreach ($this->keyRepository->getKeys() as $key) {
+      foreach ($this->keyRepository->getKeysByType('authentication') as $key) {
         $key_options[$key->id()] = $key->label();
         $has_keys = TRUE;
       }
@@ -91,7 +97,7 @@ class SettingsForm extends ConfigFormBase {
       '#type' => 'textfield',
       '#title' => $this->t('Default Figma file key'),
       '#default_value' => $config->get('default_file_key') ?: '',
-      '#description' => $this->t('Used when a tool, command or the builder is called without a file key. This is the long id in a <code>figma.com/design/&lt;fileKey&gt;/…</code> URL. Leave empty to require an explicit file key or link each time.'),
+      '#description' => $this->t('Used when a tool is called without a file key. This is the long id in a <code>figma.com/design/&lt;fileKey&gt;/…</code> URL. Leave empty to require an explicit file key or link each time.'),
     ];
     $form['connection']['figma_api_base'] = [
       '#type' => 'textfield',

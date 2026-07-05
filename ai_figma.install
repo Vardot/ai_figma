@@ -18,10 +18,13 @@ use Drupal\Core\Url;
  * Implements hook_install().
  */
 function ai_figma_install(): void {
-  // ai_figma ships only the basic Figma connection (client + settings + Key).
-  // The Canvas AI orchestrator tool-wiring and AI Context seeding are owned by
-  // varbase_ai_figma, which carries the build/assistant tools.
-  \Drupal::service('ai_figma.installer')->installFigmaKey();
+  // ai_figma ships the Figma connection (client + settings + the `figma` Key).
+  // Provision that Key (the token value is added by the site administrator),
+  // then seed the editable Figma AI guidance as AI Context items - a no-op when
+  // the ai_context module is not installed.
+  $installer = \Drupal::service('ai_figma.installer');
+  $installer->installFigmaKey();
+  $installer->seedContextItems();
 }
 
 /**

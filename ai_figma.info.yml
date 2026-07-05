@@ -1,6 +1,6 @@
 name: 'AI Figma'
 type: module
-description: 'Minimal AI Figma integration with Drupal Canvas and Drupal Canvas AI: AI Agent tools that read live Figma design context and build Canvas pages from the active theme''s own components. Config-driven, theme- and framework-agnostic.'
+description: 'Reads live Figma design context via the Figma REST API and exposes it to Drupal AI Agent tools, so the Drupal Canvas AI assistant can build from a real design. Config-driven, theme- and framework-agnostic.'
 package: 'AI'
 core_version_requirement: ^11.2
 dependencies:

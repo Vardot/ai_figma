@@ -74,14 +74,16 @@ class InstallTest extends KernelTestBase {
     // The config object exists (was installed, not brand new).
     $this->assertFalse($config->isNew(), 'ai_figma.settings was installed.');
 
-    // Keys the builder, tools and analyzer reason over.
+    // Keys the connection, tools and AI Context seeding reason over.
     foreach ([
+      'figma_token_source',
+      'figma_token_key',
+      'figma_api_base',
+      'default_file_key',
       'build_rules',
       'accessibility_rules',
-      'component_prefix',
-      'content_roles',
-      'layouts',
-      'component_choices',
+      'mapping_governance',
+      'context_scope',
     ] as $key) {
       $this->assertNotNull(
         $config->get($key),
@@ -89,10 +91,10 @@ class InstallTest extends KernelTestBase {
       );
     }
 
-    // A couple of shape spot-checks: these are structured config, not scalars.
-    $this->assertIsArray($config->get('content_roles'));
-    $this->assertIsArray($config->get('layouts'));
-    $this->assertIsArray($config->get('component_choices'));
+    // The token always resolves through the Key module.
+    $this->assertSame('key', $config->get('figma_token_source'));
+    // Scope for the seeded AI Context items is structured config.
+    $this->assertIsArray($config->get('context_scope'));
   }
 
 }

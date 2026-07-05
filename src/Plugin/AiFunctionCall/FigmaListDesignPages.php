@@ -26,7 +26,7 @@ use Symfony\Component\Yaml\Yaml;
   id: 'ai_figma:list_design_pages',
   function_name: 'ai_figma_list_design_pages',
   name: 'Figma: List Design Pages',
-  description: 'Lists the page frames of a Figma design file - every top-level frame with its node id and the canvas it belongs to. Use this FIRST when asked to build a full site from a Figma file: plan one Canvas page per design frame (skip style-guide/foundation canvases), then call Figma: Get Design Context per frame node id to build it.',
+  description: 'Lists the page frames of a Figma design file - every top-level frame with its node id and the canvas it belongs to. Use this FIRST when asked to build a full site from a Figma file: plan one Canvas page per design frame (skip style-guide/foundation canvases), then read the design context for each frame node to build it.',
   group: 'information_tools',
   module_dependencies: ['ai_figma'],
   context_definitions: [
@@ -106,7 +106,7 @@ class FigmaListDesignPages extends FunctionCallBase implements ExecutableFunctio
     $this->result = Yaml::dump([
       'figma_file_key' => $file_key,
       'design_pages' => $pages,
-      'hint' => 'Frames on a "Designs"-like canvas are the site pages. Build each by calling ai_figma_get_design_context with its node_id, creating section code components, then ai_figma_create_canvas_page. Skip foundation/icon/style canvases.',
+      'hint' => 'Frames on a "Designs"-like canvas are the site pages. Build each one from its node_id: read the design context for that frame, create the section components, and place them on a Canvas page. Skip foundation/icon/style canvases.',
     ], 4, 2);
   }
 

@@ -11,13 +11,12 @@ use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Component\Plugin\PluginManagerInterface;
 
 /**
- * Install/runtime wiring for the basic AI Figma connection module.
+ * Install/runtime wiring for the AI Figma connection module.
  *
- * The module ships only the Figma connection (client + settings + the `figma`
- * Key). This installer provisions that Key and exposes seedContextItems() as a
- * helper the varbase_ai_figma integration calls; the orchestrator tool-wiring
- * and AI Context ownership live in varbase_ai_figma, which carries the
- * build/assistant tools.
+ * The module ships the Figma connection (client + settings + the `figma` Key).
+ * This installer provisions that Key on install, and exposes seedContextItems()
+ * as a public helper that seeds the editable Figma AI guidance into AI Context
+ * items when the ai_context module is present.
  */
 final class AiFigmaInstaller {
 
@@ -90,21 +89,20 @@ final class AiFigmaInstaller {
       return;
     }
     // Reset the cached config so a build_rules value written earlier in the
-    // same request (e.g. varbase_ai_figma's applyProfile during a recipe
-    // apply) is read fresh; otherwise the items can be skipped as "empty" and
-    // never seed.
+    // same request (e.g. by a setup routine during a recipe apply) is read
+    // fresh; otherwise the items can be skipped as "empty" and never seed.
     $this->configFactory->reset('ai_figma.settings');
     $config = $this->configFactory->get('ai_figma.settings');
     $scope = (array) ($config->get('context_scope') ?: ['global' => ['global']]);
     $items = [
       'Figma Build Rules' => [
         'description' => 'Rules the Figma design-context tool and Canvas AI agents follow when building pages and components from a Figma design.',
-        'purpose' => 'Read by the varbase_ai_figma:get_design_context tool as the build instruction for Figma-to-Canvas builds. Edit here to change how designs are built.',
+        'purpose' => 'Read by Figma-aware AI agents as the build instruction for Figma-to-Canvas builds. Edit here to change how designs are built.',
         'content' => (string) $config->get('build_rules'),
       ],
       'Figma Accessibility Rules' => [
         'description' => 'WCAG 2.1 AA accessibility rules for everything built from a Figma design.',
-        'purpose' => 'Read by the varbase_ai_figma:get_design_context tool as the accessibility instruction for Figma-to-Canvas builds.',
+        'purpose' => 'Read by Figma-aware AI agents as the accessibility instruction for Figma-to-Canvas builds.',
         'content' => (string) $config->get('accessibility_rules'),
       ],
       'Figma Component Mapping Governance' => [
