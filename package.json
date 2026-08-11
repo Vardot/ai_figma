@@ -1,7 +1,7 @@
 {
   "name": "ai_figma",
   "private": true,
-  "description": "Webship-js (Playwright + Cucumber) BDD suite for the AI Figma Drupal module: drives a freshly installed site to prove the admin settings page, the AI configuration and the status report load with no PHP errors.",
+  "description": "Varbase E2E (Playwright + Cucumber) BDD suite for the AI Figma Drupal module: drives a freshly installed site to prove the admin settings page, the AI configuration and the status report load with no PHP errors.",
   "license": "GPL-2.0",
   "engines": {
     "node": ">= 22.0",
@@ -27,7 +27,7 @@
     "@cucumber/pretty-formatter": "^3.3",
     "eslint": "~8",
     "eslint-config-prettier": "~8",
-    "webship-js": "~2.0"
+    "@vardot/varbase-e2e": "~2.0.1"
   },
   "resolutions": {
     "@cucumber/pretty-formatter": "^3.3"

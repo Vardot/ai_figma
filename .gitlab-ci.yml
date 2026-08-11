@@ -21,8 +21,8 @@ variables:
   OPT_IN_TEST_NEXT_MINOR: 1
   OPT_IN_TEST_NEXT_MAJOR: 1
   OPT_IN_TEST_MAX_PHP: 1
-  # No CSS in this module; the webship-js (Playwright + Cucumber) functional
-  # suite under tests/ runs in the dedicated webship-js job below.
+  # No CSS in this module; the varbase-e2e (Playwright + Cucumber) functional
+  # suite under tests/ runs in the dedicated varbase-e2e job below.
   SKIP_STYLELINT: 1
   SKIP_ESLINT: 1
 
@@ -37,13 +37,13 @@ phpstan:
 cspell:
   allow_failure: false
 
-# webship-js functional lanes. Follows the proven webshare CI setup: build a
+# varbase-e2e functional lanes. Follows the proven webshare CI setup: build a
 # site with this module, serve it with Apache against a real MySQL service, and
-# run the tests/ webship-js (Playwright + Cucumber) BDD suite. Two jobs run the
+# run the tests/ varbase-e2e (Playwright + Cucumber) BDD suite. Two jobs run the
 # SAME suite in the two ecosystems the module targets - Drupal Canvas AI (Drupal
 # CMS) and Display Builder AI (standard profile + display_builder_base recipe).
 # Advisory (allow_failure) while stabilising; the suite is green locally 22/22.
-.webship-js:
+.varbase-e2e:
   extends: .testing-job-base
   stage: test
   needs: []
@@ -78,7 +78,7 @@ cspell:
       - tests/reports
     expire_in: 1 week
   before_script:
-    # Node 22 + Playwright (yarn 4 needs node-modules linker; webship-js's
+    # Node 22 + Playwright (yarn 4 needs node-modules linker; varbase-e2e's
     # postinstall can clobber cucumber.js, so back it up around yarn install).
     - curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
     - apt-get install -y nodejs
@@ -115,15 +115,15 @@ cspell:
     - yarn test
 
 # Drupal Canvas AI ecosystem: Drupal CMS + the Canvas AI stack.
-'webship-js (Drupal Canvas AI)':
-  extends: .webship-js
+'varbase-e2e (Drupal Canvas AI)':
+  extends: .varbase-e2e
   variables:
     ENABLE_MODULES: "ai_figma canvas_ai ai_agents ai_assistant_api"
 
 # Display Builder AI ecosystem: standard profile + the display_builder_base
 # recipe, the way the Display Builder AI project's own functional tests set up.
-'webship-js (Display Builder AI)':
-  extends: .webship-js
+'varbase-e2e (Display Builder AI)':
+  extends: .varbase-e2e
   variables:
     SITE_PACKAGE: "drupal/recommended-project"
     INSTALL_PROFILE: "standard"

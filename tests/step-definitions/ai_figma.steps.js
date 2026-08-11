@@ -1,31 +1,12 @@
 'use strict';
 
-/**
- * @file
- * Custom step definitions for the AI Figma webship-js (Playwright + Cucumber)
- * BDD suite.
- *
- * Modelled on the Display Builder AI reference module: every step drives the
- * site through the browser only - no Drush, no shell. The Mink-style
- * navigation / assertion / form steps (`I am on …`, `I navigate to …`,
- * `I should see …`, `I press …`) are provided by webship-js itself. Only the
- * steps below are module-specific (login, provisioning testing users, the
- * PHP-error guard, the access-denied guard) or are the named-selector
- * vocabulary (`Then the "<key>" element should be visible / have a count of N`,
- * `Then I should see a "<label>" field`, `Then I should see the button "…"`).
- *
- * Navigation and waiting reuse webship-js's own helpers - gotoUrl (friendly
- * navigation errors) and waitForPageLoad (BBR smart-settle: DOM ready, network
- * idle, no pending AJAX/timers, DOM-quiet) - instead of raw Playwright waits,
- * and failures are wrapped with friendly().
- */
-
 const { Given, Then, When } = require('@cucumber/cucumber');
+
 const {
   friendly,
   gotoUrl,
   waitForPageLoad,
-} = require('webship-js/tests/step-definitions/webship');
+} = require('@vardot/varbase-e2e/tests/step-definitions/varbase-e2e');
 
 /**
  * Run a step body and rethrow any failure as a tester-friendly error.
@@ -40,45 +21,6 @@ async function attempt(body, message) {
     throw friendly(message, err);
   }
 }
-
-/**
- * Log in as a named test user defined in cucumber.js worldParameters.users.
- *
- * The Webmaster row is the site-install super-admin. Every other row is
- * provisioned by `Given I add testing users` (see below). Uses Drupal's stable
- * form field IDs so the step is theme-independent: #edit-name / #edit-pass are
- * rendered by Claro, Gin and vartheme_bs5 alike, and the submit is scoped to
- * #user-login-form #edit-submit so it works whether the active theme renders it
- * as an <input> (Olivero / Claro) or a <button> (Bootstrap) - and never matches
- * the theme's header search button.
- *
- * Example #1: Given I am a logged in user with the "Webmaster" user
- * Example #2: Given I am a logged in user with the "Content editor" user
- * Example #3: Given I am a logged in user with the "Authenticated user" user
- * Example #4: Given I am a logged in user with the username "Content editor" user
- * Example #5: Given I am a logged in user with "Webmaster"
- */
-Given(/^I am a logged in user with( the)*( username)* "([^"]*)?"( user)?$/, async function (theCase, usernameCase, key, userCase) {
-  const users = this.parameters.users || {};
-  if (!(key in users)) {
-    throw new Error(`No user named "${key}" in cucumber.js worldParameters.users`);
-  }
-  const { username, password } = users[key];
-  if (!username || !password) {
-    throw new Error(`User "${key}" is missing username or password in worldParameters.users`);
-  }
-  // Clear any existing session first: visiting /user/login while already
-  // authenticated just redirects to the profile page (no login form), which
-  // breaks re-logging-in as a different user within the same scenario.
-  await attempt(async () => {
-    await this.context.clearCookies();
-    await gotoUrl(this.page, `${this.parameters.launchUrl}/user/login`);
-    await this.page.locator('#edit-name').fill(username);
-    await this.page.locator('#edit-pass').fill(password);
-    await this.page.locator('#user-login-form #edit-submit').first().click();
-    await waitForPageLoad(this.page, this.minWaitTime && this.minWaitTime.page);
-  }, `Could not log in as "${key}"`);
-});
 
 /**
  * Provision every non-admin user from cucumber.js worldParameters.users via
@@ -160,7 +102,9 @@ Then(/^(?:I |we )?am denied access to "([^"]*)"$/, async function (path) {
   await attempt(async () => {
     const response = await this.page.goto(`${this.parameters.launchUrl}${path}`, { waitUntil: 'networkidle' });
     const status = response ? response.status() : 0;
-    if (status === 403) {
+    // 403 is the straight refusal; 404 also keeps the surface unreachable
+    // (a route can vanish when its providing module is not part of a build).
+    if (status === 403 || status === 404) {
       return;
     }
     const body = await this.page.content();
@@ -171,7 +115,7 @@ Then(/^(?:I |we )?am denied access to "([^"]*)"$/, async function (path) {
 });
 
 /**
- * Resolve a webship-js named selector from the world registry (hydrated from
+ * Resolve a varbase-e2e named selector from the world registry (hydrated from
  * cucumber.js's selectors.files list). Throws when the name is unknown so a
  * typo never silently passes through to Playwright as a literal CSS string.
  */

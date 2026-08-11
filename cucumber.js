@@ -1,4 +1,4 @@
-// Webship-js (Playwright + Cucumber) configuration for the AI Figma module.
+// Varbase E2E (Playwright + Cucumber) configuration for the AI Figma module.
 //
 // Browser-only BDD. Point it at any running site that has the ai_figma module
 // enabled (the GitHub Actions workflow installs Drupal Core / Drupal CMS /
@@ -6,14 +6,14 @@
 //
 //   LAUNCH_URL=https://your-site.ddev.site npm test
 //
-// Loads webship-js's built-in step library plus this module's custom steps.
+// Loads varbase-e2e's built-in step library plus this module's custom steps.
 
 module.exports = {
   default: {
     timeout: 45000,
     requireModule: ['tsx/cjs'],
     require: [
-      'node_modules/webship-js/tests/step-definitions/**/*.js',
+      'node_modules/@vardot/varbase-e2e/tests/step-definitions/**/*.js',
       'tests/step-definitions/**/*.js',
     ],
     paths: ['tests/features/**/*.feature'],
@@ -65,7 +65,7 @@ module.exports = {
         xpath: {},
         filesPath: './tests/selectors/',
         // One file per content-management system / admin theme the matrix
-        // targets, plus the module's own named selectors. webship-js merges
+        // targets, plus the module's own named selectors. varbase-e2e merges
         // them into a single registry, so a scenario can address e.g.
         // "drupal page heading" whatever distro is under test.
         files: [

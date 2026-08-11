@@ -30,7 +30,7 @@ vendor/bin/phpunit -c web/core/phpunit.xml.dist --filter testParseFigmaUrl path/
 composer validate --no-check-all --no-check-publish
 ```
 
-Node/JS side is the **webship-js (Playwright + Cucumber-js) BDD suite** in `tests/` that drives an already-running site:
+Node/JS side is the **varbase-e2e (Playwright + Cucumber-js) BDD suite** in `tests/` that drives an already-running site:
 
 ```bash
 yarn install
@@ -41,7 +41,7 @@ yarn lint:js        # eslint tests/step-definitions
 yarn generate-reports
 ```
 
-The suite has **no `@javascript` and no `@ai` scenarios** (no live LLM calls) — every CI leg is an always-green functional lane needing no provider key. CI (`.github/workflows/test.yml`) runs eslint, cspell (advisory), `composer validate`, PHPCS, PHPStan (level 1), PHPUnit, and the webship-js matrix across Drupal Core / Drupal CMS / Varbase 11.
+The suite has **no `@javascript` and no `@ai` scenarios** (no live LLM calls) — every CI leg is an always-green functional lane needing no provider key. CI (`.github/workflows/test.yml`) runs eslint, cspell (advisory), `composer validate`, PHPCS, PHPStan (level 1), PHPUnit, and the varbase-e2e matrix across Drupal Core / Drupal CMS / Varbase 11.
 
 ## Architecture
 

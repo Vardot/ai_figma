@@ -10,7 +10,7 @@
   },
   "ts-node": {
     "ignore": [
-      "node_modules/(?!webship-js/)"
+      "node_modules/(?!varbase-e2e/)"
     ]
   }
 }
