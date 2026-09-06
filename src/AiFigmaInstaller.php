@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Drupal\ai_figma;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
@@ -124,11 +125,11 @@ final class AiFigmaInstaller {
         }
         if ($entity) {
           $entity->set('content', ['value' => $fields['content'], 'format' => 'plain_text']);
-          $entity->set('scope', $scope);
+          $this->applyContextScope($entity, $scope);
           $entity->save();
           continue;
         }
-        $storage->create([
+        $new_entity = $storage->create([
           'type' => 'default',
           'status' => TRUE,
           'uid' => 1,
@@ -136,13 +137,30 @@ final class AiFigmaInstaller {
           'description' => ['value' => $fields['description'], 'format' => 'plain_text'],
           'purpose' => ['value' => $fields['purpose'], 'format' => 'plain_text'],
           'content' => ['value' => $fields['content'], 'format' => 'plain_text'],
-          'scope' => $scope,
-        ])->save();
+        ]);
+        $this->applyContextScope($new_entity, $scope);
+        $new_entity->save();
       }
     }
     catch (\Throwable $e) {
       $this->loggerFactory->get('ai_figma')->warning('Could not seed AI Context items: @msg', ['@msg' => $e->getMessage()]);
     }
+  }
+
+  /**
+   * Assigns a grouped scope array to an AI Context item.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The ai_context_item entity to assign the scope to.
+   * @param array $scope
+   *   Grouped scope, keyed by scope plugin ID, each an array of values.
+   */
+  protected function applyContextScope(EntityInterface $entity, array $scope): void {
+    if (method_exists($entity, 'setScope')) {
+      $entity->setScope($scope);
+      return;
+    }
+    $entity->set('scope', $scope);
   }
 
 }
