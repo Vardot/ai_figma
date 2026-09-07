@@ -27,7 +27,7 @@
     "@cucumber/pretty-formatter": "^3.3",
     "eslint": "~8",
     "eslint-config-prettier": "~8",
-    "@vardot/varbase-e2e": "~2.0.1"
+    "@vardot/varbase-e2e": "^2.0.4"
   },
   "resolutions": {
     "@cucumber/pretty-formatter": "^3.3"

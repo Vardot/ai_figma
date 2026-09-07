@@ -87,34 +87,6 @@ Then(/^(?:I |we )?the page should not have PHP errors$/, async function () {
 });
 
 /**
- * Navigate to a path and assert the server denied access. Checks the HTTP
- * response status (403) first - theme-agnostic - and falls back to the Drupal
- * "not authorized" body text. Proves non-administrators are kept out of the AI
- * Figma configuration.
- *
- * Example #1: Then I am denied access to "/admin/config/ai/figma"
- * Example #2: And I am denied access to "/admin/config/ai/figma"
- * Example #3: Then I am denied access to "/admin/config/ai/agents"
- * Example #4: And we am denied access to "/admin/reports/status"
- * Example #5: Then I am denied access to "/admin/config/ai"
- */
-Then(/^(?:I |we )?am denied access to "([^"]*)"$/, async function (path) {
-  await attempt(async () => {
-    const response = await this.page.goto(`${this.parameters.launchUrl}${path}`, { waitUntil: 'networkidle' });
-    const status = response ? response.status() : 0;
-    // 403 is the straight refusal; 404 also keeps the surface unreachable
-    // (a route can vanish when its providing module is not part of a build).
-    if (status === 403 || status === 404) {
-      return;
-    }
-    const body = await this.page.content();
-    if (!/not authorized to access this page|access denied/i.test(body)) {
-      throw new Error(`Expected access to "${path}" to be denied (HTTP 403), got HTTP ${status}`);
-    }
-  }, `Expected to be denied access to "${path}"`);
-});
-
-/**
  * Resolve a varbase-e2e named selector from the world registry (hydrated from
  * cucumber.js's selectors.files list). Throws when the name is unknown so a
  * typo never silently passes through to Playwright as a literal CSS string.
