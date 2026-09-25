@@ -6,12 +6,12 @@ namespace Drupal\Tests\ai_figma\Unit;
 
 use Drupal\ai_figma\FigmaContextClient;
 use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * @coversDefaultClass \Drupal\ai_figma\FigmaContextClient
- *
- * @group ai_figma
  */
+#[Group('ai_figma')]
 class FigmaUrlParseTest extends UnitTestCase {
 
   /**

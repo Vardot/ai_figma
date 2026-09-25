@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Drupal\Tests\ai_figma\Kernel;
 
 use Drupal\KernelTests\KernelTestBase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
@@ -20,9 +21,8 @@ use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
  * dependency graph cannot be satisfied in the Kernel environment (e.g. one of
  * the contrib modules is absent or unbootable), the test SKIPS with a clear
  * message instead of erroring, keeping the suite green.
- *
- * @group ai_figma
  */
+#[Group('ai_figma')]
 #[RunTestsInSeparateProcesses]
 class InstallTest extends KernelTestBase {
 
