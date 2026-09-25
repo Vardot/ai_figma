@@ -6,4 +6,3 @@ tests/screenshots/
 *.log
 .playwright-mcp/
 package-lock.json
-yarn.lock

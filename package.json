@@ -1,4 +1,5 @@
 {
+  "packageManager": "yarn@4.9.3",
   "name": "ai_figma",
   "private": true,
   "description": "Varbase E2E (Playwright + Cucumber) BDD suite for the AI Figma Drupal module: drives a freshly installed site to prove the admin settings page, the AI configuration and the status report load with no PHP errors.",
@@ -24,12 +25,14 @@
     "generate-reports": "generate-reports"
   },
   "devDependencies": {
-    "@cucumber/pretty-formatter": "^3.3",
+    "@cucumber/cucumber": "10.0.1",
+    "@cucumber/pretty-formatter": "1.0.0",
+    "@vardot/varbase-e2e": "^2.0.4",
     "eslint": "~8",
-    "eslint-config-prettier": "~8",
-    "@vardot/varbase-e2e": "^2.0.4"
+    "eslint-config-prettier": "~8"
   },
   "resolutions": {
-    "@cucumber/pretty-formatter": "^3.3"
+    "@cucumber/pretty-formatter": "1.0.0",
+    "@cucumber/cucumber": "10.0.1"
   }
 }

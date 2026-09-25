@@ -20,7 +20,7 @@ module.exports = {
     // Always-green CI lane. No @javascript and no @ai scenarios exist in this
     // suite (no live LLM calls), so nothing is excluded by default.
     format: [
-      'pretty',
+      '@cucumber/pretty-formatter',
       'json:tests/reports/cucumber_report.json',
     ],
     worldParameters: {
