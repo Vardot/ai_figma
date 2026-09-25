@@ -26,6 +26,13 @@ variables:
   SKIP_STYLELINT: 1
   SKIP_ESLINT: 1
 
+# Temporary (#3625830): Twig 3.30.0 compiles Drupal core's drupal_escape filter
+# into a direct EscaperRuntime::escape() call, so every page render is a fatal
+# TypeError. Keep the CI build below 3.30 until a fixed Twig release is out.
+.composer-base:
+  before_script:
+    - composer require --dev --no-update "twig/twig:<3.30"
+
 # Blocking quality gates: Drupal + DrupalPractice coding standards and PHPStan.
 phpcs:
   allow_failure: false
@@ -95,7 +102,7 @@ cspell:
     - composer config prefer-stable true
     - composer config allow-plugins true -n
     - composer config repositories.mut '{"type":"path","url":"'"$CI_PROJECT_DIR"'","options":{"symlink":true}}'
-    - composer require "drupal/ai_figma:*@dev" drush/drush $EXTRA_REQUIRE --no-interaction --no-progress
+    - composer require "drupal/ai_figma:*@dev" drush/drush "twig/twig:<3.30" $EXTRA_REQUIRE --no-interaction --no-progress
     # Apache serves the built site against the MySQL service.
     - mkdir -pv $_BUILD_DIR/web/sites/default/files $_BUILD_DIR/web/sites/simpletest
     - chmod -R 777 $_BUILD_DIR/web/sites/default/files $_BUILD_DIR/web/sites/simpletest
